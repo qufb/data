@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+
+import sys
+
+with open('timer.bin', 'wb') as f:
+    # Interrupt vector
+    b = b'\xff\x88\x00\x30'
+    b += b'\x9e\xff\xff\xff'
+    b += b'\x9e\xff\xff\xff'
+    b += b'\x9e\xff\xff\xff'
+    b += b'\x9e\xff\xff\xff'
+    b += b'\xff' * (0x30 - len(b))
+
+    # Init
+    #b += b'\xf1\x00\xb5\x80\xb7\x00\xb1\xff\xf3\x00\xdd\x40\xfc\xc1\x70\xff\x02\xd5\x08\xd6\x70\xb3\x03\xb9\x00\xf5\x00\xff'
+    b += b'\xf7\xc0'
+
+    #b += b'\xb3\x03\xb9\x00\xfe'
+    b += b'\xb3\x07\xb9\x00\xfe'
+    for i in range(0x10, 0x60, 1):
+        if i % 2 == 0:
+            continue
+        b += b'\xb3' + bytes([i]) + b'\xb9\x00\xfe'
+        b += b'\xb3' + bytes([i]) + b'\xb9\x00\xfe'
+        b += b'\xb3' + bytes([i]) + b'\xb9\x00\xfe'
+        b += b'\xb3\x13\xb9\x00\xfe'
+
+    b += b'\xff\x88\xf0\x00'
+    b += b'\xff' * (0x00f000 - len(b))
+    b += b'\xff\x88\xf0\x00'
+
+    # ROM check signature
+    b += b'\xff' * (0x00fff0 - len(b))
+    b += b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
+
+    # Blank
+    b += b'\xff' * (0x100000 - len(b))
+
+    f.write(b)
