@@ -160,7 +160,7 @@ class Decoder(srd.Decoder):
                 if self.rom_state == 'start':
                     if i == 0:
                         ts1_rom_start = self.samplenum
-                        rom_addr1, rom_data1 = self.reduce_addr_data()
+                        rom_addr1, rom_data1 = self.reduce_addr_data() # FIXME: Should be on OE: "r"?
                         i += 1
                     else:
                         ts2_rom_start = self.samplenum
@@ -194,6 +194,6 @@ class Decoder(srd.Decoder):
                     self.ram_state = 'end'
                 else:
                     ts1_ram_end = self.samplenum
-                    self.putx(ts1_ram_start, ts1_ram_end, [2, ["%06x" % ram_addr1]])
+                    self.putx(ts1_ram_start, ts1_ram_end, [2, ["%06x" % (ram_addr1 * 2)]])
                     self.putx(ts1_ram_start, ts1_ram_end, [3 if self.is_ram_r else 4, ["%02x" % (ram_data1)]])
                     self.ram_state = 'start'
