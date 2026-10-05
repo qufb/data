@@ -115,7 +115,9 @@ class Decoder(srd.Decoder):
         return reduce(lambda a, b: (a << 1) | b, reversed(bus))
 
     def reduce_addr_data(self):
-        (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, clk, ce, oe, ram_we, ram_ce, d0, d1, d2, d3, d4, d5, d6, d7,) = self.wait({Pin.CLK: "r"})
+        #(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, clk, ce, oe, ram_we, ram_ce, d0, d1, d2, d3, d4, d5, d6, d7,) = self.wait({Pin.CLK: "r"})
+        self.wait()
+        (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, clk, ce, oe, ram_we, ram_ce, d0, d1, d2, d3, d4, d5, d6, d7,) = self.wait()
         addr = self.reduce_bus((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18,))
         data = self.reduce_bus((d0, d1, d2, d3, d4, d5, d6, d7))
         self.is_ram_r = ram_we == 1
@@ -147,13 +149,19 @@ class Decoder(srd.Decoder):
         while True:
             conds = []
             if self.rom_state == 'start':
-                conds.append({Pin.OE: "f"})
+                # conds.append({Pin.OE: "f"})
+                conds.append({Pin.CE: "f"})
             else:
-                conds.append({Pin.OE: "r"})
+                # conds.append({Pin.OE: "r"})
+                conds.append({Pin.CE: "r"})
             if self.ram_state == 'start':
-                conds.append({Pin.OE: "h", Pin.RAM_CE: "f"})
+                # conds.append({Pin.OE: "h", Pin.RAM_CE: "f"})
+                # conds.append({Pin.RAM_CE: "f"})
+                conds.append({Pin.RAM_WE: "f"})
             else:
-                conds.append({Pin.OE: "h", Pin.RAM_CE: "r"})
+                # conds.append({Pin.OE: "h", Pin.RAM_CE: "r"})
+                # conds.append({Pin.RAM_CE: "r"})
+                conds.append({Pin.RAM_WE: "r"})
 
             self.wait(conds)
             if (self.matched & (0b1 << 0)):
@@ -187,8 +195,14 @@ class Decoder(srd.Decoder):
                         rom_addr1 = rom_addr2
                         rom_data1 = rom_data2
                     self.rom_state = 'start'
-            else:
+            #else:
+            if (self.matched & (0b1 << 1)):
+                #self.rom_state = 'end'
                 if self.ram_state == 'start':
+                    # HACK (due to no RAM_OE)
+                    # 25/1.67 ~= 15, need half+delta of that
+                    # self.wait({'skip': 10})
+                    self.wait({'skip': 15})
                     ts1_ram_start = self.samplenum
                     ram_addr1, ram_data1 = self.reduce_addr_data()
                     self.ram_state = 'end'

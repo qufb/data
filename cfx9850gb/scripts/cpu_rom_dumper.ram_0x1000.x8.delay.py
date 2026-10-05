@@ -9,12 +9,13 @@ import sys
 
 with open('cpu.bin', 'wb') as f:
     # Interrupt vector
-    b = b'\xff\x88\x00\x30'
-    b += b'\x9e\xff\xff\xff'
-    b += b'\x9e\xff\xff\xff'
-    b += b'\x9e\xff\xff\xff'
-    b += b'\x9e\xff\xff\xff'
-    b += b'\xff' * (0x30 - len(b))
+    # b = b'\xff\x88\x00\x30'
+    # b += b'\x9e\xff\xff\xff'
+    # b += b'\x9e\xff\xff\xff'
+    # b += b'\x9e\xff\xff\xff'
+    # b += b'\x9e\xff\xff\xff'
+    # b += b'\xff' * (0x30 - len(b))
+    b = b'\x00' * 0x4000
 
     # Body
     b += b'\xdd\x00\xfc' # ld DS,0x00 ; unk_fc
@@ -48,7 +49,7 @@ with open('cpu.bin', 'wb') as f:
     b += b'\x3c\x80\x01' # addb r00,0x01
     # Goto start of body if chunk idx < 0x100
     b += b'\x14\x80\x00' # cmpb r00,0x00
-    b += b'\xa7\x00\x3e' # jmp NZ,0x003e
+    b += b'\xa7\x40\x0e' # jmp NZ,0x400e
 
     b += b'\xff\x88\xf0\x00'
     b += b'\xff' * (0x00f000 - len(b))
